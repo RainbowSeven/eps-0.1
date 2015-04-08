@@ -1,0 +1,47 @@
+/*  Stylesheet mods
+    Author: Oluwafemi Sule
+    Date: 1/12/2015
+*/
+*{
+    box-sizing: border-box;
+}
+.nav{
+    background:none repeat scroll 0% 0% #333;
+    display: block;
+    margin: 0; 
+    padding: 0;
+}
+.nav::after, .nav::before{
+    content: '';
+    display: block;
+    clear:both;
+}
+#main {
+    margin: 10px;
+    padding: 30px;
+    border: 1px solid #ccc;
+}
+header {
+    margin-bottom: 10px;
+}
+.space-block {
+    padding: 10px;
+}
+
+footer {
+    background: #ccc;
+    margin: 0px;
+    padding-top: 30px;
+    display: block;
+    height: 150px;
+}
+
+.warning{
+    color: #ff0000;
+}
+.back{
+    background-color: green;
+}
+.back:hover{
+    background-color: darkgreen;
+}
