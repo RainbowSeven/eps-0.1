@@ -509,9 +509,35 @@ class Admin extends CI_Controller {
                 employee_model->get_sick_day( 'list', $emp_id ), 'employee_name' => $this->
                 employee_model->get_employee_name( $emp_id ) ) );
           }
-
         }
         break;
+      case 'employee':
+        switch ( $specifier ) {
+          case '_pay_type':
+            if ( ! $this->input->get( 'type_id' ) ) {
+              $this->load->view( 'admin/type_select_master', array( 'pay_types' => $this->
+                  employee_model->get_employee_type(), 'controller' =>
+                  'admin/browse/employee/_pay_type' ) );
+            } else {
+              $type_id = $this->input->get( 'type_id' );
+              $this->load->view( 'admin/employee_master', array( 'employees' => $this->
+                  employee_model->get_employees_in_dept( '', 'pay_type', $type_id ),
+                  'pay_type_name' => $this->employee_model->get_pay_type_name( $type_id ) ) );
+            }
+            break;
+          case '_department':
+            if ( ! $this->input->get( 'dept_id' ) ) {
+              $this->load->view( 'admin/department_select_master', array( 'departments' => $this->
+                  department_model->get_department_list(), 'controller' =>
+                  'admin/browse/employee/_department' ) );
+            } else {
+              $dept_id = $this->input->get( 'dept_id' );
+                $this->load->view( 'admin/employee_master', array( 'employees' => $this->
+                    employee_model->get_employees_in_dept( $dept_id ), 'department_name' =>
+                    $this->department_model->get_department_name($dept_id)) );
+            }
+            break;
+        }
     }
   }
   public function edit( $item ) {

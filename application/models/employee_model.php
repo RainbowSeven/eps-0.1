@@ -222,33 +222,47 @@
    *This function gets all employees in a department by deptid.
    * @param int deptid
    * @param string beam
+   * @param string is
    * @return array employees
    */
-  public function get_employees_in_dept( $deptid = '', $beam = '' ) {
-
-    $this->db->select( 'empid, lastname, firstname, minit, jobtitle, email, officephone, homephone, cellphone' );
-    if ( $deptid != '' ) $this->db->where( array( 'deptid' => $deptid ) );
-    $this->db->join( 'jobtitle', 'jobtitle.jobid = employee.jobid' );
-    $query = $this->db->get( 'employee' );
-    if ( $query->num_rows() > 0 ) {
-      $result = $query->result_array();
-      if ( $beam == '' ) {
-        return $result;
-      } elseif ( $beam == 'locks' ) {
-        $fit = array();
-        foreach ( $result as $row ) {
-          // echo $value['empid'];
-          $fit[$row['empid']]['lockstatus'] = $this->is_locked( $row['empid'] ) ? 'Locked' :
-            'Not locked';
-          $fit[$row['empid']]['lastname'] = $row['lastname'];
-          $fit[$row['empid']]['firstname'] = $row['firstname'];
-          $fit[$row['empid']]['jobtitle'] = $row['jobtitle'];
-          $fit[$row['empid']]['empid'] = $row['empid'];
+  public function get_employees_in_dept( $deptid = '', $beam = '', $is = '' ) {
+    switch ( $beam ) {
+      case 'pay_type':
+        $this->db->select( 'empid, lastname, firstname, minit, jobtitle' );
+        $this->db->join( 'jobtitle', 'jobtitle.jobid = employee.jobid' );
+        $this->db->where( array( 'typeid' => $is ) );
+        $query = $this->db->get( 'employee' );
+        if ( $query->num_rows() > 0 ) {
+          return $query->result_array();
+        } else {
+          return false;
         }
-        return $fit;
-      }
-    } else {
-      return false;
+        break;
+      default:
+        $this->db->select( 'empid, lastname, firstname, minit, jobtitle, email, officephone, homephone, cellphone' );
+        if ( $deptid != '' ) $this->db->where( array( 'deptid' => $deptid ) );
+        $this->db->join( 'jobtitle', 'jobtitle.jobid = employee.jobid' );
+        $query = $this->db->get( 'employee' );
+        if ( $query->num_rows() > 0 ) {
+          $result = $query->result_array();
+          if ( $beam == '' ) {
+            return $result;
+          } elseif ( $beam == 'locks' ) {
+            $fit = array();
+            foreach ( $result as $row ) {
+              // echo $value['empid'];
+              $fit[$row['empid']]['lockstatus'] = $this->is_locked( $row['empid'] ) ? 'Locked' :
+                'Not locked';
+              $fit[$row['empid']]['lastname'] = $row['lastname'];
+              $fit[$row['empid']]['firstname'] = $row['firstname'];
+              $fit[$row['empid']]['jobtitle'] = $row['jobtitle'];
+              $fit[$row['empid']]['empid'] = $row['empid'];
+            }
+            return $fit;
+          }
+        } else {
+          return false;
+        }
     }
   }
   /**
@@ -912,19 +926,39 @@
   public function get_sick_day( $type, $emp_id, $start = '', $end = '' ) {
     switch ( $type ) {
       case 'list':
-        $this->db->select('sickid, datesick, payment, note');
-        $this->db->where(array('empid'=>$emp_id));
-        $query = $this->db->get('sickday');
-        if($query->num_rows() > 0){
-            return $query->result_array();
-        }
-        else{
-            return false;
+        $this->db->select( 'sickid, datesick, payment, note' );
+        $this->db->where( array( 'empid' => $emp_id ) );
+        $query = $this->db->get( 'sickday' );
+        if ( $query->num_rows() > 0 ) {
+          return $query->result_array();
+        } else {
+          return false;
         }
         break;
       case 'total':
-      
+
         break;
     }
   }
+  /**
+   * This function gets a pay type name from employeetype table
+   * @param int pay type id
+   * @return pay type name
+   * 
+   */
+   public function get_pay_type_name($type_id){
+    $this->db->select('typename');
+    $this->db->where(array('typeid'=>$type_id));
+    $query = $this->db->get('employeetype');
+    if($query->num_rows() == 1){
+        $type_name = '';
+        foreach($query->result_array() as $row){
+            $type_name .= $row['typename'];
+        }
+        return $type_name;
+    }
+    else{
+        return false;
+    }
+   }
 } ?>

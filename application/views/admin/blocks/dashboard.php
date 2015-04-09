@@ -42,11 +42,11 @@
 <ul class="dropdown">
 <li class="has-dropdown"><?php echo anchor('#','View list of employees');?>
 <ul class="dropdown">
-<li><?php echo anchor('admin/view/employee/_type', 'By type'); ?></li>
-<li><?php echo anchor('admin/view/employee/_category', 'By category'); ?></li>
+<li><?php echo anchor('admin/browse/employee/_pay_type', 'By pay type'); ?></li>
+<li><?php echo anchor('admin/browse/employee/_department', 'By department'); ?></li>
 </ul>
 </li>
-<li><?php echo anchor('admin/view/total_hours', 'Total hours worked'); ?></li>
+<li><?php echo anchor('admin/browse/total_hours', 'Total hours worked'); ?></li>
 </ul>
 </li>
 <li class="has-dropdown"><a href="#">Department reports</a>
