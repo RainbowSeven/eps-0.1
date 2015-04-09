@@ -10,8 +10,7 @@ if(is_array($projects)){
     <th>Poject title</th>
     <th>Department</th>
     <th>Category</th>
-    <th>View</th>
-    <th>Edit</th>
+    <th>Actions</th>
     </thead>
     <tbody>
     <?php 
@@ -23,8 +22,10 @@ if(is_array($projects)){
             echo "<td>None</td>";
         }else{
         echo "<td>{$project['category']}</td>";}
-        echo "<td>".anchor('admin/browse/project/'.$project['projectid'],'View')."</td>"
-        ."<td>".anchor('admin/edit/project/'.$project['projectid'],'Edit')."</td>"
+        echo "<td>".
+        anchor('admin/edit/project/'.$project['projectid'],'Edit')." ".anchor('admin/browse/project/'.$project['projectid'],'View').' '.
+        anchor('admin/delete/project/'.$project['projectid'],'Delete').
+        "</td>"
         ."</tr>";
     }
     

@@ -1,5 +1,10 @@
 <?php class Project_model extends CI_Model
 {
+/**
+ * This function gets project listing from project table
+ * @param int department id
+ * @return array project list
+*/
   public function listing($deptid = '')
   {
     $this->db->select('projectid, projecttitle, category.name category, department.deptname deptname, active');
@@ -18,7 +23,7 @@
   }
   /**
    * This function gets project categories
-   * @return array
+   * @return array project categories
    */
   public function get_category_master()
   {

@@ -1,4 +1,10 @@
 <?php class Employee_model extends CI_Model {
+  /**
+   * This function login employee and sets the session
+   * @param string login
+   * @param string password
+   * @return boolean
+   */
   public function login( $login, $password ) {
     $query = $this->db->get_where( 'employee', array( 'login' => $login, 'password' =>
         $password ) );
@@ -11,14 +17,92 @@
           'lastname' => $row->lastname,
           'firstname' => $row->firstname ) );
       }
+      if ( ! $this->is_checkedout() ) {
+        $this->delete_timesheet_record( 'most recent' );
+        $this->session->set_userdata( array( 'flash_message' =>
+            'deleted timesheet record' ) );
+      }
       return true;
     } else {
       return false;
     }
   }
-
+  /**
+   * This function checks if employee is checked out
+   * @param int employee id
+   * @return boolean
+   */
+  public function is_checkedout( $emp_id = '' ) {
+    $this->db->select( 'checkout' );
+    if ( $emp_id == '' ) $this->db->where( array( 'empid' => $this->session->
+          userdata( 'empid' ) ) );
+    else  $this->db->where( array( 'empid' => $emp_id ) );
+    $this->db->order_by( 'timeid', 'desc' );
+    $this->db->limit( 1 );
+    $query = $this->db->get( 'timesheet' );
+    if ( $query->num_rows() == 1 ) {
+      $result = '';
+      foreach ( $query->result_array() as $row ) {
+        $result .= $row['checkout'];
+      }
+      if ( $result == '0000-00-00 00:00:00' ) return false;
+      else  return true;
+    }
+  }
+  /**
+   * This function gets the last id of a record
+   * @param string table name
+   * @return int id
+   */
+  public function get_last_id( $table_name ) {
+    switch ( $table_name ) {
+      case 'timesheet':
+        $this->db->select( 'timeid' );
+        $this->db->order_by( 'timeid', 'desc' );
+        $this->db->limit( 1 );
+        $query = $this->db->get( $table_name );
+        if ( $query->num_rows() == 1 ) {
+          $id = 0;
+          foreach ( $query->result_array() as $row ) {
+            $id = $row['timeid'];
+          }
+          return ( int )$id;
+        } else {
+          return false;
+        }
+        break;
+    }
+  }
+  /**
+   * This function deletes a timesheet record
+   * @param string type
+   * @param int specifier id
+   * @return boolean 
+   */
+  public function delete_timesheet_record( $type, $id = '' ) {
+    switch ( $type ) {
+      case 'most recent':
+        try {
+          if ( $this->db->delete( 'timesheet', array( 'timeid' => $this->get_last_id( 'timesheet' ) ) ) ) {
+            return true;
+          }
+        }
+        catch ( exception $e ) {
+          return false;
+        }
+        break;
+    }
+  }
+  /**
+   * This function adds checkin information in timesheet table
+   * @return boolean
+   */
   public function checkin() {
+    if ( ! $this->is_checkedout() ) {
+      $this->delete_timesheet_record( 'most recent' );
+    }
     try {
+
       $this->db->where( array( 'empid' => $this->session->userdata( 'empid' ) ) );
       $this->db->order_by( 'timeid asc' );
       $this->db->limit( 1 );
@@ -53,28 +137,42 @@
   }
 
   public function checkout() {
-    $timeid = '';
+    $time_id = '';
     $this->db->where( array( 'empid' => $this->session->userdata( 'empid' ) ) );
     $this->db->order_by( 'timeid asc' );
     $this->db->limit( 1 );
     $query = $this->db->get( 'timesheet' );
     if ( $query->num_rows() == 1 ) {
       foreach ( $query->result() as $row ) {
-        $timeid = $row->timeid;
-        if ( $row->checkout != '0000-00-00 00:00:00' ) throw new Exception( 'Already checked out!' );
-        else {
+        $time_id = $row->timeid;
+        if ( $row->checkout != '0000-00-00 00:00:00' ) {
+          if ( ! $this->is_checkedout() ) {
+            $this->delete_timesheet_record( 'most recent' );
+            $this->session->set_userdata( array( 'flash_message' =>
+                'deleted timesheet record' ) );
+          }
+          return false;
+        } else {
           $this->db->where( 'timeid', $timeid );
+          if ( $this->input->server( 'REMOTE_ADDR' ) == '::1' ) $ipcheckout =
+              '127.000.000.001';
+          else  $ipcheckout = $this->input->server( 'REMOTE_ADDR' );
+          $checkout = $this->input->post( 'timenow' );
+          $rawtime = strtotime( $checkout ) - $this->get_checkin_time( 'timestamp', $time_id );
+          $rawtime = $rawtime / 3600;
+          $roundedtime = floor( $rawtime );
           if ( $this->db->update( 'timesheet', array(
-
             'empid' => $this->session->userdata( 'empid' ),
-            'checkout' => $this->input->post( 'timenow' ),
+            'checkout' => $checkout,
             'workdesc' => $this->input->post( 'desc' ),
             'projectid' => $this->input->post( 'project' ),
-            'ipcheckout' => $this->input->server( 'REMOTE_ADDR' ),
+            'ipcheckout' => $ipcheckout,
+            'rawtime' => $rawtime,
+            'roundedtime' => $roundedtime,
             'checked' => 'n' ) ) ) {
             $this->session->unset_userdata( 'checked_in' );
             return true;
-          } else  throw new Exception( 'Unable to check in employee at this time!' );
+          } else  return false;
         }
 
       }
@@ -237,6 +335,9 @@
         } else {
           return false;
         }
+        break;
+      case 'total_hours':
+
         break;
       default:
         $this->db->select( 'empid, lastname, firstname, minit, jobtitle, email, officephone, homephone, cellphone' );
@@ -526,7 +627,7 @@
   }
   /**
    * This function adds a clockin message for an employee in the messages table.
-   * @return bool
+   * @return boolean
    */
   public function add_clockin_message() {
     try {
@@ -756,7 +857,7 @@
   /**
    * This function confirms employee timesheet
    * @param int timesheet id
-   * @return bool
+   * @return boolean
    */
   public function confirm_timesheet( $time_id ) {
     try {
@@ -792,7 +893,7 @@
    * This function add pay rate for an employee
    * @param string employee time
    * @param int employee id
-   * @return bool
+   * @return boolean
    */
   public function add_pay_rate( $type, $emp_id ) {
     switch ( $type ) {
@@ -829,7 +930,7 @@
   /**
    * This function adds employee pay deduction in the deductions table
    * @param int employee id
-   * @return bool
+   * @return boolean
    */
   public function add_deduction( $emp_id ) {
     try {
@@ -851,7 +952,7 @@
   }
   /** This function adds employee holiday
    * @param int employee id
-   * @return bool
+   * @return boolean
    */
   public function add_holiday( $emp_id ) {
     try {
@@ -882,7 +983,7 @@
   }
   /** This function adds employee bonus
    * @param int employee id
-   * @return bool
+   * @return boolean
    */
   public function add_bonus( $emp_id ) {
     try {
@@ -900,7 +1001,7 @@
   }
   /** This function adds employee sick day from sickday table
    * @param int employee id
-   * @return bool
+   * @return boolean
    */
   public function add_sick_day( $emp_id ) {
     try {
@@ -946,19 +1047,40 @@
    * @return pay type name
    * 
    */
-   public function get_pay_type_name($type_id){
-    $this->db->select('typename');
-    $this->db->where(array('typeid'=>$type_id));
-    $query = $this->db->get('employeetype');
-    if($query->num_rows() == 1){
-        $type_name = '';
-        foreach($query->result_array() as $row){
-            $type_name .= $row['typename'];
+  public function get_pay_type_name( $type_id ) {
+    $this->db->select( 'typename' );
+    $this->db->where( array( 'typeid' => $type_id ) );
+    $query = $this->db->get( 'employeetype' );
+    if ( $query->num_rows() == 1 ) {
+      $type_name = '';
+      foreach ( $query->result_array() as $row ) {
+        $type_name .= $row['typename'];
+      }
+      return $type_name;
+    } else {
+      return false;
+    }
+  }
+  /**
+   * This function gets the checkin time 
+   * @param string structure
+   * @param int time id
+   * @return mixed time value
+   */
+  public function get_checkin_time( $struct, $time_id ) {
+    switch ( $struct ) {
+      case 'timestamp':
+        $this->db->select( 'checkin' );
+        $this->db->where( array( 'timeid' => $time_id ) );
+        $query = $this->db->get( 'timesheet' );
+        $timestamp = '';
+        if ( $query->num_rows() == 0 ) {
+          foreach ( $query->result_array() as $row ) {
+            $timestamp .= strtotime( $row['checkin'] );
+          }
+          return $timestamp;
         }
-        return $type_name;
+        break;
     }
-    else{
-        return false;
-    }
-   }
+  }
 } ?>

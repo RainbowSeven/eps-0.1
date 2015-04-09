@@ -405,8 +405,24 @@ class Admin extends CI_Controller {
             project_model->get_category_master() ) );
         break;
       case 'project':
-        $this->load->view( 'admin/project_master', array( 'projects' => $this->
-            project_model->listing() ) );
+        switch ( $specifier ) {
+          case '_department':
+            if ( ! $this->input->get( 'dept_id' ) ) {
+              $this->load->view( 'admin/department_select_master', array( 'departments' => $this->
+                  department_model->get_department_list(), 'controller' =>
+                  'admin/browse/project/_department' ) );
+            } else {
+              $dept_id = $this->input->get( 'dept_id' );
+              $this->load->view( 'admin/project_master', array( 'projects' => $this->
+                  project_model->listing( $dept_id ), 'department_name' => $this->
+                  department_model->get_department_name( $dept_id ) ) );
+            }
+            break;
+          default:
+            $this->load->view( 'admin/project_master', array( 'projects' => $this->
+                project_model->listing() ) );
+            break;
+        }
         break;
       case 'ip_access_rule':
         $this->load->view( 'admin/ip_access_rule_master', array( 'rules' => $this->
@@ -532,12 +548,31 @@ class Admin extends CI_Controller {
                   'admin/browse/employee/_department' ) );
             } else {
               $dept_id = $this->input->get( 'dept_id' );
-                $this->load->view( 'admin/employee_master', array( 'employees' => $this->
-                    employee_model->get_employees_in_dept( $dept_id ), 'department_name' =>
-                    $this->department_model->get_department_name($dept_id)) );
+              $this->load->view( 'admin/employee_master', array( 'employees' => $this->
+                  employee_model->get_employees_in_dept( $dept_id ), 'department_name' => $this->
+                  department_model->get_department_name( $dept_id ) ) );
             }
             break;
         }
+        break;
+      case 'employee_hours':
+        switch ( $specifier ) {
+          case '_department':
+            if ( ! $this->input->get( 'dept_id' ) ) {
+              $this->load->view( 'admin/department_select_master', array( 'departments' => $this->
+                  department_model->get_department_list(), 'controller' =>
+                  'admin/browse/employee_hours/_department' ) );
+            } else {
+              $dept_id = $this->input->get( 'dept_id' );
+              $this->load->view( 'admin/employee_hours_master', array( 'employees' => $this->
+                  employee_model->get_employees_in_dept( $dept_id, 'total_hours' ),
+                  'department_name' => $this->department_model->get_department_name( $dept_id ) ) );
+            }
+            break;
+        }
+        break;
+      case 'hours_on_project':
+        break;
     }
   }
   public function edit( $item ) {

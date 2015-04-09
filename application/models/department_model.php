@@ -84,8 +84,8 @@
     }
   }
   /**
-   * This function checks if the clockout option is set to yes in department table.
-   * @return bool
+   * This function checks if the clockout option is set to yes in department table
+   * @return boolean
    */
   public function has_clockout_option() {
     $this->db->select( 'mandaworkdesc' );

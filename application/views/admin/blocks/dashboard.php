@@ -51,9 +51,9 @@
 </li>
 <li class="has-dropdown"><a href="#">Department reports</a>
 <ul class="dropdown">
-<li><?php echo anchor('admin/employee_hours','Employee hours by department');?></li>
-<li><?php echo anchor('admin/project_worked','Projects worked by department');?></li>
-<li><?php echo anchor('admin/hours_on_project','Hours on project');?></li>
+<li><?php echo anchor('admin/browse/employee_hours/_department','Employee hours by department');?></li>
+<li><?php echo anchor('admin/browse/project/_department','Projects worked by department');?></li>
+<li><?php echo anchor('admin/browse/hours_on_project','Hours on project');?></li>
 </ul>
 </li>
 <li><a href="#">Project reports</a></li>

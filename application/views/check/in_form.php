@@ -15,9 +15,14 @@
   }
   else
   {
+    $extra = '';
+    if ( isset( $flash_message ) ) { 
+    $extra .= "<div data-alert class=\"alert-box\">
+                <p>echo $flash_message;</p><a href=\"#\" class=\"close\">&times;</a>
+    </div>";}
     echo $this->load->view(
                 'blocks/one_button_form', 
-                array('processor'=>'perform/checkin','action' => 'Check In', 'extras' => ''));
+                array('processor'=>'perform/checkin','action' => 'Check In', 'extras' => $extra));
   }
   ?>
 </div>
