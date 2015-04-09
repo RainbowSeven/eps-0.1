@@ -228,37 +228,159 @@ class Admin extends CI_Controller {
         }
         break;
       case 'salary':
-      if(!$this->input->get('dept_id')){
-        $this->load->view('admin/department_select_master',array('departments'=>$this->department_model->get_department_list(),'controller'=>'admin/add/salary'));
-      }else{
-        if(!$this->input->get('emp_id')){
-            $dept_id = $this->input->get('dept_id');
-        $this->load->view('admin/employee_select_master', array('employees'=>$this->employee_model->get_employees_in_dept($dept_id),'controller'=>'admin/add/salary?dept_id='.$dept_id));
-        }
-        else{
-            $emp_id = $this->input->get('emp_id');
-            $url = $this->input->server('HTTP_REFERER');
-            if(!$this->input->post('action_btn')){
-                $this->load->view('admin/salary_form', array('employee_name'=>$this->employee_model->get_employee_name($emp_id),'employee_type'=>$this->employee_model->get_employee_type($emp_id),'controller'=>$url.'?emp_id='.$emp_id));
-            }else{
-                $type_of_employee = $this->employee_model->type_of_employee($emp_id);
-                if( $type_of_employee == 'salary'){
-                    $this->employee_model->add_pay_rate('salary',$emp_id);
-                }
-                else{
-                    $this->employee_model->add_pay_rate('hourly',$emp_id);
-                }
+        if ( ! $this->input->get( 'dept_id' ) ) {
+          $this->load->view( 'admin/department_select_master', array( 'departments' => $this->
+              department_model->get_department_list(), 'controller' => 'admin/add/salary' ) );
+        } else {
+          $dept_id = $this->input->get( 'dept_id' );
+          if ( ! $this->input->get( 'emp_id' ) ) {
+            $this->load->view( 'admin/employee_select_master', array( 'employees' => $this->
+                employee_model->get_employees_in_dept( $dept_id ), 'controller' =>
+                'admin/add/salary?dept_id=' . $dept_id ) );
+          } else {
+            $emp_id = $this->input->get( 'emp_id' );
+            $url = 'admin/add/salary?dept_id=' . $dept_id;
+            if ( ! $this->input->post( 'action_btn' ) ) {
+              $this->load->view( 'admin/salary_form', array(
+                'employee_name' => $this->employee_model->get_employee_name( $emp_id ),
+                'employee_type' => $this->employee_model->get_employee_type( $emp_id ),
+                'controller' => $url . '&emp_id=' . $emp_id ) );
+            } else {
+              $type_of_employee = $this->employee_model->type_of_employee( $emp_id );
+              if ( $type_of_employee == 'salary' ) {
+                $this->employee_model->add_pay_rate( 'salary', $emp_id );
+              } else {
+                $this->employee_model->add_pay_rate( 'hourly', $emp_id );
+              }
             }
+          }
         }
-      }
         break;
       case 'deduction':
+        if ( ! $this->input->get( 'dept_id' ) ) {
+          $this->load->view( 'admin/department_select_master', array( 'departments' => $this->
+              department_model->get_department_list(), 'controller' => 'admin/add/deduction' ) );
+        } else {
+          $dept_id = $this->input->get( 'dept_id' );
+          if ( ! $this->input->get( 'emp_id' ) ) {
+            $this->load->view( 'admin/employee_select_master', array( 'employees' => $this->
+                employee_model->get_employees_in_dept( $dept_id ), 'controller' =>
+                'admin/add/deduction?dept_id=' . $dept_id ) );
+          } else {
+
+            $emp_id = $this->input->get( 'emp_id' );
+            $url = 'admin/add/deduction?dept_id=' . $dept_id;
+            if ( ! $this->input->post( 'action_btn' ) ) {
+              $this->load->view( 'admin/deduction_form', array( 'employee_name' => $this->
+                  employee_model->get_employee_name( $emp_id ), 'controller' => $url . '&emp_id=' .
+                  $emp_id ) );
+            } else {
+              if ( $this->employee_model->add_deduction( $emp_id ) ) {
+                redirect( 'admin/browse/deduction?dept_id=' . $dept_id . '&emp_id=' . $emp_id );
+              } else {
+                $this->load->view( 'admin/deduction_form', array(
+                  'employee_name' => $this->employee_model->get_employee_name( $emp_id ),
+                  'controller' => $url . '&emp_id=' . $emp_id,
+                  'message' => 'Failed to add deduction' ) );
+              }
+            }
+          }
+        }
+
         break;
       case 'holiday':
+        if ( ! $this->input->get( 'dept_id' ) ) {
+          $this->load->view( 'admin/department_select_master', array( 'departments' => $this->
+              department_model->get_department_list(), 'controller' => 'admin/add/holiday' ) );
+        } else {
+          $dept_id = $this->input->get( 'dept_id' );
+          if ( ! $this->input->get( 'emp_id' ) ) {
+            $this->load->view( 'admin/employee_select_master', array( 'employees' => $this->
+                employee_model->get_employees_in_dept( $dept_id ), 'controller' =>
+                'admin/add/holiday?dept_id=' . $dept_id ) );
+          } else {
+
+            $emp_id = $this->input->get( 'emp_id' );
+            $url = 'admin/add/holiday?dept_id=' . $dept_id;
+            if ( ! $this->input->post( 'action_btn' ) ) {
+              $this->load->view( 'admin/holiday_form', array( 'employee_name' => $this->
+                  employee_model->get_employee_name( $emp_id ), 'controller' => $url . '&emp_id=' .
+                  $emp_id ) );
+            } else {
+              if ( $this->employee_model->add_holiday( $emp_id ) ) {
+                redirect( 'admin/browse/holiday?dept_id=' . $dept_id . '&emp_id=' . $emp_id );
+              } else {
+                $this->load->view( 'admin/holiday_form', array(
+                  'employee_name' => $this->employee_model->get_employee_name( $emp_id ),
+                  'controller' => $url . '&emp_id=' . $emp_id,
+                  'message' => 'Failed to add holiday' ) );
+              }
+            }
+          }
+        }
         break;
       case 'bonus':
+        if ( ! $this->input->get( 'dept_id' ) ) {
+          $this->load->view( 'admin/department_select_master', array( 'departments' => $this->
+              department_model->get_department_list(), 'controller' => 'admin/add/bonus' ) );
+        } else {
+          $dept_id = $this->input->get( 'dept_id' );
+          if ( ! $this->input->get( 'emp_id' ) ) {
+            $this->load->view( 'admin/employee_select_master', array( 'employees' => $this->
+                employee_model->get_employees_in_dept( $dept_id ), 'controller' =>
+                'admin/add/bonus?dept_id=' . $dept_id ) );
+          } else {
+
+            $emp_id = $this->input->get( 'emp_id' );
+            $url = 'admin/add/bonus?dept_id=' . $dept_id;
+            if ( ! $this->input->post( 'action_btn' ) ) {
+              $this->load->view( 'admin/bonus_form', array( 'employee_name' => $this->
+                  employee_model->get_employee_name( $emp_id ), 'controller' => $url . '&emp_id=' .
+                  $emp_id ) );
+            } else {
+              if ( $this->employee_model->add_bonus( $emp_id ) ) {
+                redirect( 'admin/browse/bonus?dept_id=' . $dept_id . '&emp_id=' . $emp_id );
+              } else {
+                $this->load->view( 'admin/bonus_form', array(
+                  'employee_name' => $this->employee_model->get_employee_name( $emp_id ),
+                  'controller' => $url . '&emp_id=' . $emp_id,
+                  'message' => 'Failed to add bonus' ) );
+              }
+            }
+          }
+        }
         break;
-      case 'sickday':
+      case 'sick_day':
+        if ( ! $this->input->get( 'dept_id' ) ) {
+          $this->load->view( 'admin/department_select_master', array( 'departments' => $this->
+              department_model->get_department_list(), 'controller' => 'admin/add/sick_day' ) );
+        } else {
+          $dept_id = $this->input->get( 'dept_id' );
+          if ( ! $this->input->get( 'emp_id' ) ) {
+            $this->load->view( 'admin/employee_select_master', array( 'employees' => $this->
+                employee_model->get_employees_in_dept( $dept_id ), 'controller' =>
+                'admin/add/sick_day?dept_id=' . $dept_id ) );
+          } else {
+
+            $emp_id = $this->input->get( 'emp_id' );
+            $url = 'admin/add/sick_day?dept_id=' . $dept_id;
+            if ( ! $this->input->post( 'action_btn' ) ) {
+              $this->load->view( 'admin/sick_day_form', array( 'employee_name' => $this->
+                  employee_model->get_employee_name( $emp_id ), 'controller' => $url . '&emp_id=' .
+                  $emp_id ) );
+            } else {
+              if ( $this->employee_model->add_sick_day( $emp_id ) ) {
+                redirect( 'admin/browse/sick_day?dept_id=' . $dept_id . '&emp_id=' . $emp_id );
+              } else {
+                $this->load->view( 'admin/sick_day_form', array(
+                  'employee_name' => $this->employee_model->get_employee_name( $emp_id ),
+                  'controller' => $url . '&emp_id=' . $emp_id,
+                  'message' => 'Failed to add sick day' ) );
+              }
+            }
+          }
+        }
+
         break;
     }
   }
@@ -295,7 +417,100 @@ class Admin extends CI_Controller {
             department_model->get_events() ) );
         break;
       case 'payroll':
-        $this->load->view(); //TODO
+        if ( ! $this->input->get( 'dept_id' ) ) {
+          $this->load->view( 'admin/department_select_master', array( 'departments' => $this->
+              department_model->get_department_list(), 'controller' => 'admin/browse/payroll' ) );
+        } else {
+          $dept_id = $this->input->get( 'dept_id' );
+          if ( ! $this->input->get( 'emp_id' ) ) {
+            $this->load->view( 'admin/employee_select_master', array( 'employees' => $this->
+                employee_model->get_employees_in_dept( $dept_id ), 'controller' =>
+                'admin/browse/payroll?dept_id=' . $dept_id ) );
+          } else {
+            $emp_id = $this->input->get( 'emp_id' );
+            $this->load->view( 'admin/payroll_master', array( 'payroll_slips' => $this->
+                department_model->get_payroll_report( 'employee', $emp_id ), 'employee_name' =>
+                $this->employee_model->get_employee_name( $emp_id ) ) );
+          }
+
+        }
+        break;
+      case 'deduction':
+        if ( ! $this->input->get( 'dept_id' ) ) {
+          $this->load->view( 'admin/department_select_master', array( 'departments' => $this->
+              department_model->get_department_list(), 'controller' =>
+              'admin/browse/deduction' ) );
+        } else {
+          $dept_id = $this->input->get( 'dept_id' );
+          if ( ! $this->input->get( 'emp_id' ) ) {
+            $this->load->view( 'admin/employee_select_master', array( 'employees' => $this->
+                employee_model->get_employees_in_dept( $dept_id ), 'controller' =>
+                'admin/browse/deduction?dept_id=' . $dept_id ) );
+          } else {
+            $emp_id = $this->input->get( 'emp_id' );
+            $this->load->view( 'admin/deduction_master', array( 'deductions' => $this->
+                employee_model->get_deduction( 'list', $emp_id ), 'employee_name' => $this->
+                employee_model->get_employee_name( $emp_id ) ) );
+          }
+
+        }
+        break;
+      case 'holiday':
+        if ( ! $this->input->get( 'dept_id' ) ) {
+          $this->load->view( 'admin/department_select_master', array( 'departments' => $this->
+              department_model->get_department_list(), 'controller' => 'admin/browse/holiday' ) );
+        } else {
+          $dept_id = $this->input->get( 'dept_id' );
+          if ( ! $this->input->get( 'emp_id' ) ) {
+            $this->load->view( 'admin/employee_select_master', array( 'employees' => $this->
+                employee_model->get_employees_in_dept( $dept_id ), 'controller' =>
+                'admin/browse/holiday?dept_id=' . $dept_id ) );
+          } else {
+            $emp_id = $this->input->get( 'emp_id' );
+            $this->load->view( 'admin/holiday_master', array( 'holidays' => $this->
+                employee_model->get_holiday( $emp_id ), 'employee_name' => $this->
+                employee_model->get_employee_name( $emp_id ) ) );
+          }
+
+        }
+        break;
+      case 'bonus':
+        if ( ! $this->input->get( 'dept_id' ) ) {
+          $this->load->view( 'admin/department_select_master', array( 'departments' => $this->
+              department_model->get_department_list(), 'controller' => 'admin/browse/bonus' ) );
+        } else {
+          $dept_id = $this->input->get( 'dept_id' );
+          if ( ! $this->input->get( 'emp_id' ) ) {
+            $this->load->view( 'admin/employee_select_master', array( 'employees' => $this->
+                employee_model->get_employees_in_dept( $dept_id ), 'controller' =>
+                'admin/browse/bonus?dept_id=' . $dept_id ) );
+          } else {
+            $emp_id = $this->input->get( 'emp_id' );
+            $this->load->view( 'admin/bonus_master', array( 'bonuses' => $this->
+                employee_model->get_bonus( 'list', $emp_id ), 'employee_name' => $this->
+                employee_model->get_employee_name( $emp_id ) ) );
+          }
+
+        }
+        break;
+      case 'sick_day':
+        if ( ! $this->input->get( 'dept_id' ) ) {
+          $this->load->view( 'admin/department_select_master', array( 'departments' => $this->
+              department_model->get_department_list(), 'controller' => 'admin/browse/sick_day' ) );
+        } else {
+          $dept_id = $this->input->get( 'dept_id' );
+          if ( ! $this->input->get( 'emp_id' ) ) {
+            $this->load->view( 'admin/employee_select_master', array( 'employees' => $this->
+                employee_model->get_employees_in_dept( $dept_id ), 'controller' =>
+                'admin/browse/sick_day?dept_id=' . $dept_id ) );
+          } else {
+            $emp_id = $this->input->get( 'emp_id' );
+            $this->load->view( 'admin/sick_day_master', array( 'sick_days' => $this->
+                employee_model->get_sick_day( 'list', $emp_id ), 'employee_name' => $this->
+                employee_model->get_employee_name( $emp_id ) ) );
+          }
+
+        }
         break;
     }
   }
@@ -333,7 +548,7 @@ class Admin extends CI_Controller {
           } else {
             $this->department_model->generate_payroll_report( $dept_id );
             $this->load->view( 'admin/payroll_report', array( 'reports' => $this->
-                department_model->get_payroll_report( $dept_id ) ) );
+                department_model->get_payroll_report( 'department', $dept_id ) ) );
           }
 
         }

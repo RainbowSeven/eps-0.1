@@ -167,7 +167,7 @@
   }
   /**
    * This function gets the email address of an employee by id.
-   * @param int empid
+   * @param int employee id
    * @return string email
    */
   public function get_employee_email( $empid ) {
@@ -190,8 +190,8 @@
   }
   /**
    * This function gets the name of an employee by id.
-   * @param int empid
-   * @return string name
+   * @param int employee id
+   * @return string employee name
    */
   public function get_employee_name( $empid = '' ) {
     if ( $empid != '' ) {
@@ -222,7 +222,7 @@
    *This function gets all employees in a department by deptid.
    * @param int deptid
    * @param string beam
-   * @return array
+   * @return array employees
    */
   public function get_employees_in_dept( $deptid = '', $beam = '' ) {
 
@@ -252,8 +252,9 @@
     }
   }
   /**
-   *@param string $needle
-   *@return array $result
+   * This function searches for an employee in employee table
+   *@param string needle
+   *@return array result
    */
   public function search( $needle ) {
     $needles = explode( ' ', $needle );
@@ -274,9 +275,9 @@
     }
   }
   /**
-   * Gets employee detail.
-   * @param int $empid
-   * @return array $result
+   * This function gets employee detail
+   * @param int employee id
+   * @return array employee detail
    */
   public function get_employee_detail( $empid ) {
     $this->db->where( array( 'employee.empid' => $empid ) );
@@ -308,8 +309,8 @@
   }
   /**
    * This function checks for users checked in.
-   * @param int $empid
-   * @return array
+   * @param int employee id
+   * @return array checkin employees
    */
   public function checked_in( $empid ) {
     $this->db->where( array( 'empid' => $empid, 'checkout' => '0000-00-00 00:00:00' ) );
@@ -666,47 +667,77 @@
   }
   /**
    * This function gets employee bonus from bonus table.
+   * @param string type
    * @param int employee id
    * @param date start
    * @param date end
    * @return int bonus
    */
-  public function get_bonus( $emp_id, $start, $end ) {
-    $this->db->select( 'bonuspayment' );
-    $this->db->where( array(
-      'empid' => $emp_id,
-      'datebonus >=' => $start,
-      'datebonus <=' => $end ) );
-    $query = $this->db->get( 'bonus' );
-    if ( $query->num_rows() > 0 ) {
-      $bonuses = 0;
-      foreach ( $query->result_array() as $row ) {
-        $bonuses = $bonuses + ( int )$row['bonuspayment'];
-      }
-      return $bonuses;
-    } else  return 0;
+  public function get_bonus( $type, $emp_id, $start = '', $end = '' ) {
+    switch ( $type ) {
+      case 'total':
+        $this->db->select( 'bonuspayment' );
+
+        $this->db->where( array(
+          'empid' => $emp_id,
+          'datebonus >=' => $start,
+          'datebonus <=' => $end ) );
+
+        $query = $this->db->get( 'bonus' );
+        if ( $query->num_rows() > 0 ) {
+          $bonuses = 0;
+          foreach ( $query->result_array() as $row ) {
+            $bonuses = $bonuses + ( int )$row['bonuspayment'];
+          }
+          return $bonuses;
+        } else  return 0;
+        break;
+      case 'list':
+        $this->db->select( 'bonusid, datebonus, bonuspayment, note' );
+        $query = $this->db->get( 'bonus' );
+        if ( $query->num_rows() > 0 ) {
+          return $query->result_array();
+        } else {
+          return false;
+        }
+        break;
+    }
   }
   /**
    * This function gets employee deduction from deductions table.
+   * @param string type
    * @param int employee id
    * @param date start
    * @param date end
    * @return int deduction
    */
-  public function get_deduction( $emp_id, $start, $end ) {
-    $this->db->select( 'amount' );
-    $this->db->where( array(
-      'empid' => $emp_id,
-      'deductdate >=' => $start,
-      'deductdate <=' => $end ) );
-    $query = $this->db->get( 'deductions' );
-    if ( $query->num_rows() > 0 ) {
-      $deductions = 0;
-      foreach ( $query->result_array() as $row ) {
-        $deductions = $deductions + ( int )$row['bonuspayment'];
-      }
-      return $deductions;
-    } else  return 0;
+  public function get_deduction( $type, $emp_id, $start = '', $end = '' ) {
+    switch ( $type ) {
+      case 'total':
+        $this->db->select( 'amount' );
+        $this->db->where( array(
+          'empid' => $emp_id,
+          'deductdate >=' => $start,
+          'deductdate <=' => $end ) );
+        $query = $this->db->get( 'deductions' );
+        if ( $query->num_rows() > 0 ) {
+          $deductions = 0;
+          foreach ( $query->result_array() as $row ) {
+            $deductions = $deductions + ( int )$row['bonuspayment'];
+          }
+          return $deductions;
+        } else  return 0;
+        break;
+      case 'list':
+        $this->db->where( array( 'empid' => $emp_id ) );
+        $query = $this->db->get( 'deductions' );
+        if ( $query->num_rows() > 0 ) {
+          return $query->result_array();
+        } else {
+          return false;
+        }
+        break;
+    }
   }
   /**
    * This function confirms employee timesheet
@@ -781,5 +812,119 @@
     }
 
   }
-
+  /**
+   * This function adds employee pay deduction in the deductions table
+   * @param int employee id
+   * @return bool
+   */
+  public function add_deduction( $emp_id ) {
+    try {
+      $date = $this->input->post( 'deduction_date' );
+      if ( $date == '' ) {
+        $date = date( 'Y-m-d' );
+      }
+      $this->db->insert( 'deductions', array(
+        'empid' => $emp_id,
+        'deductype' => $this->input->post( 'deduction_type' ),
+        'deductdate' => $date,
+        'amount' => $this->input->post( 'amount' ) ) );
+      return true;
+    }
+    catch ( exception $e ) {
+      //Do something
+      return false;
+    }
+  }
+  /** This function adds employee holiday
+   * @param int employee id
+   * @return bool
+   */
+  public function add_holiday( $emp_id ) {
+    try {
+      $this->db->insert( 'holidays', array(
+        'empid' => $emp_id,
+        'datehols' => $this->input->post( 'datehols' ),
+        'payment' => $this->input->post( 'amount' ),
+        'note' => $this->input->post( 'note' ) ) );
+      return true;
+    }
+    catch ( exception $e ) {
+      //Do something
+      return false;
+    }
+  }
+  /** This function gets employee holiday
+   * @param int employee id
+   * @return array holiday
+   */
+  public function get_holiday( $emp_id ) {
+    $this->db->select( 'holid, datehols, payment, note' );
+    $query = $this->db->get( 'holidays' );
+    if ( $query->num_rows() > 0 ) {
+      return $query->result_array();
+    } else {
+      return false;
+    }
+  }
+  /** This function adds employee bonus
+   * @param int employee id
+   * @return bool
+   */
+  public function add_bonus( $emp_id ) {
+    try {
+      $this->db->insert( 'bonus', array(
+        'empid' => $emp_id,
+        'datebonus' => $this->input->post( 'datebonus' ),
+        'bonuspayment' => $this->input->post( 'amount' ),
+        'note' => $this->input->post( 'note' ) ) );
+      return true;
+    }
+    catch ( exception $e ) {
+      //Do something
+      return false;
+    }
+  }
+  /** This function adds employee sick day from sickday table
+   * @param int employee id
+   * @return bool
+   */
+  public function add_sick_day( $emp_id ) {
+    try {
+      $this->db->insert( 'sickday', array(
+        'empid' => $emp_id,
+        'datesick' => $this->input->post( 'datesick' ),
+        'payment' => $this->input->post( 'amount' ),
+        'note' => $this->input->post( 'note' ) ) );
+      return true;
+    }
+    catch ( exception $e ) {
+      //Do something
+      return false;
+    }
+  }
+  /** This function gets employee sick day from sickday table
+   * @param string type
+   * @param int employee id
+   * @param date start date
+   * @param date end date
+   * @return mixed
+   */
+  public function get_sick_day( $type, $emp_id, $start = '', $end = '' ) {
+    switch ( $type ) {
+      case 'list':
+        $this->db->select('sickid, datesick, payment, note');
+        $this->db->where(array('empid'=>$emp_id));
+        $query = $this->db->get('sickday');
+        if($query->num_rows() > 0){
+            return $query->result_array();
+        }
+        else{
+            return false;
+        }
+        break;
+      case 'total':
+      
+        break;
+    }
+  }
 } ?>

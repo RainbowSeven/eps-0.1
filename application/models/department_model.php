@@ -318,9 +318,9 @@
         $totalhours = $this->employee_model->get_total_hours( $employee['empid'], $start,
           $end );
         $gross_pay = 0;
-        $bonuses = $this->employee_model->get_bonus( $employee['empid'], $start, $end );
-        $deductions = $this->employee_model->get_deduction( $employee['empid'], $start,
-          $end );
+        $bonuses = $this->employee_model->get_bonus('total', $employee['empid'], $start, $end );
+        $deductions = $this->employee_model->get_deduction( 'total', $employee['empid'],
+          $start, $end );
         if ( $this->employee_model->get_employee_type( $employee['empid'] ) == 'salary' ) {
           $gross_pay = $this->employee_model->get_salary_rate( $employee['empid'] );
         } else {
@@ -344,17 +344,33 @@
   }
   /**
    * This function gets payroll report
+   * @param string report type
    * @param int department id
    * @return array payroll report
    */
-  public function get_payroll_report( $dept_id ) {
-    $this->db->select( 'payrollid, employee.empid empid, firstname, lastname, hoursworked, grosspay, netpay, startdate, enddate' );
-    $this->db->join( 'payroll', 'payroll.empid = employee.empid' );
-    $this->db->where( array( 'deptid' => $dept_id ) );
-    $query = $this->db->get( 'employee' );
-    if ( $query->num_rows() > 0 ) {
-      return $query->result_array();
-    } else  return false;
+  public function get_payroll_report( $type, $id ) {
+    switch ( $type ) {
+      case 'department':
+        $this->db->select( 'payrollid, employee.empid empid, firstname, lastname, hoursworked, grosspay, netpay, startdate, enddate' );
+        $this->db->join( 'payroll', 'payroll.empid = employee.empid' );
+        $this->db->where( array( 'deptid' => $id ) );
+        $query = $this->db->get( 'employee' );
+        if ( $query->num_rows() > 0 ) {
+          return $query->result_array();
+        } else  return false;
+        break;
+      case 'employee':
+        $this->db->select( 'payrolldate, payrollid, employee.empid empid, firstname, lastname, hoursworked, grosspay, netpay, additions, deductions, startdate, enddate' );
+        $this->db->join( 'payroll', 'payroll.empid = employee.empid' );
+        $this->db->where( array( 'payroll.empid' => $id ) );
+        $query = $this->db->get( 'employee' );
+        if ( $query->num_rows() > 0 ) {
+          return $query->result_array();
+        } else  return false;
+
+        break;
+    }
+
   }
 
 } ?>

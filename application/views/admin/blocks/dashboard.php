@@ -71,7 +71,7 @@
 <li><?php echo anchor('admin/add/deduction','Add payroll deduction'); ?></li>
 <li><?php echo anchor('admin/add/holiday','Add holiday for an employee'); ?></li>
 <li><?php echo anchor('admin/add/bonus','Add bonus for an employee'); ?></li>
-<li><?php echo anchor('admin/add/sickday','Add employee sick day'); ?></li>
+<li><?php echo anchor('admin/add/sick_day','Add employee sick day'); ?></li>
 </ul>
 </li>
 <li class="has-dropdown"><a href="#">Employee payroll maintenance</a>
